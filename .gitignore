@@ -1,6 +1,10 @@
+# KUDC specified
+.idea/
+data/
+output/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
-data/
 *.py[cod]
 *$py.class
 

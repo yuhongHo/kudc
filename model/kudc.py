@@ -33,48 +33,51 @@ class Trainer(object):
         self.best_score = 0.0
 
     def build_adam_optimizer(self, model_name, lr, num_train_steps, num_warmup_steps, global_step=0):
-        if model_name == 'bert':
-            last_epoch = -1 if global_step == 0 else global_step
-            param_optimizer = list(self.model.named_parameters())
-            no_decay = ['bias', 'LayerNorm.weight']
+        # if model_name == 'bert':
+        #     last_epoch = -1 if global_step == 0 else global_step
+        #     param_optimizer = list(self.model.named_parameters())
+        #     no_decay = ['bias', 'LayerNorm.weight']
+        #
+        #     optimizer_grouped_parameters = [
+        #         {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
+        #          'weight_decay': 0.01},
+        #         {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        #     ]
+        #
+        #     optimizer = AdamW(optimizer_grouped_parameters, lr=lr)
+        #     for group in optimizer.param_groups:
+        #         group['initial_lr'] = lr
+        #     scheduler = get_linear_schedule_with_warmup(optimizer,
+        #                                                 num_warmup_steps=num_warmup_steps,
+        #                                                 num_training_steps=num_train_steps,
+        #                                                 last_epoch=last_epoch)
+        # else:
+        #     for name, param in self.model.named_parameters():
+        #         print(name, param.size())
+        #     parameter_groups = []
+        #     for name, param in self.model.named_parameters:
+        #         if "bert" in name:
+        #             # parameter_groups.append({
+        #             #     "params": param,
+        #             #     "lr": lr,
+        #             # })
+        #             pass
+        #         else:
+        #             parameter_groups.append({
+        #                 "params": param,
+        #                 "lr": 1e-3,
+        #             })
+        #     print(parameter_groups)
+        #     optimizer = optim.Adam(parameter_groups)
+        optimizer = optim.Adam(self.model.parameters(), lr=lr)
+        scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,
+                                                   mode='max',
+                                                   factor=0.5,
+                                                   patience=1,
+                                                   min_lr=0.0001,
+                                                   verbose=True)
 
-            optimizer_grouped_parameters = [
-                {'params': [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)],
-                 'weight_decay': 0.01},
-                {'params': [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
-            ]
-
-            optimizer = AdamW(optimizer_grouped_parameters, lr=lr)
-            for group in optimizer.param_groups:
-                group['initial_lr'] = lr
-            scheduler = get_linear_schedule_with_warmup(optimizer,
-                                                        num_warmup_steps=num_warmup_steps,
-                                                        num_training_steps=num_train_steps,
-                                                        last_epoch=last_epoch)
-        else:
-            # for name, param in self.model.named_parameters():
-            #     print(name, param.size())
-            parameter_groups = []
-            for name, param in self.model.named_parameters:
-                if "bert" in name:
-                    parameter_groups.append({
-                        "params": param,
-                        "lr": lr,
-                    })
-                else:
-                    parameter_groups.append({
-                        "params": param,
-                        "lr": 1e-3,
-                    })
-            optimizer = AdamW(parameter_groups)
-            # scheduler = lr_scheduler.ReduceLROnPlateau(optimizer,
-            #                                            mode='max',
-            #                                            factor=0.5,
-            #                                            patience=1,
-            #                                            min_lr=0.0001,
-            #                                            verbose=True)
-
-        return optimizer, None
+        return optimizer, scheduler
 
     def save_checkpoint(self, output_dir, acc):
         directory = output_dir + f'/{self.dataset_name}_checkpoint/'

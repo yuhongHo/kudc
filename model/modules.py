@@ -13,16 +13,18 @@ class ClassificationLoss(nn.Module):
         return self.loss(inputs, target)
 
 class BilstmEncoder(nn.Module):
-    def __init__(self, bert_hidden_size, rnn_hidden_size, rnn_dropout, sequence_size, num_label, batch_size):
+    def __init__(self, vocab_size, bert_hidden_size, rnn_hidden_size, rnn_dropout, sequence_size, num_label, batch_size):
         super(BilstmEncoder, self).__init__()
+        self.vocab_size = vocab_size
         self.bert_hidden_size = bert_hidden_size
         self.rnn_hidden_size = rnn_hidden_size
         self.rnn_dropout = rnn_dropout
         self.sequence_size = sequence_size
         self.num_label = num_label
         self.batch_size = batch_size
-        self.bert = BertEncoder('bert-base-uncased')
-        self.rnn = RNNEncoder(input_size=self.bert_hidden_size, hidden_size=self.rnn_hidden_size)
+        # self.bert = BertEncoder('bert-base-uncased')
+        self.embedding = nn.Embedding(vocab_size, bert_hidden_size)
+        self.rnn = RNNEncoder(input_size=self.bert_hidden_size, hidden_size=self.rnn_hidden_size, embedder=self.embedding)
         self.fc = nn.Linear(self.rnn_hidden_size, self.num_label)
         self.activation = nn.Tanh()
         self.softmax = nn.Softmax(dim=1)
@@ -33,13 +35,13 @@ class BilstmEncoder(nn.Module):
         input_seq = utterance.input_ids
         token_type_ids = utterance.token_type_ids
         attn_mask = utterance.attention_mask
-        bert_out = self.bert(input_seq, token_type_ids=token_type_ids, attn_mask=attn_mask)
-        # last_hidden_state (batch_size, sequence_length, hidden_size)
-        # Sequence of hidden-states at the output of the last layer of the model.
-        bert_hidden_state = bert_out["last_hidden_state"]
-        # Calculate lengths by attn_mask([64, 128])
+        # bert_out = self.bert(input_seq, token_type_ids=token_type_ids, attn_mask=attn_mask)
+        # # last_hidden_state (batch_size, sequence_length, hidden_size)
+        # # Sequence of hidden-states at the output of the last layer of the model.
+        # bert_hidden_state = bert_out["last_hidden_state"]
+        # # Calculate lengths by attn_mask([64, 128])
         lengths = attn_mask.sum(1)
-        feature, last_hidden_state = self.rnn(inputs=(bert_hidden_state, lengths))
+        feature, last_hidden_state = self.rnn(inputs=(input_seq, lengths))
         # feature, (h, c) = self.bilstm(hidden_states[-1]) # bilstm采用comcat torch.Size([32, 64, 60])
         # last_hidden_state = feature[:, -1, :]
         linear_state = self.fc(last_hidden_state[-1])

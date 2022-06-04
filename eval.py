@@ -51,6 +51,7 @@ def train():
 
     # Build model
     myModel = BilstmEncoder(
+        tokenizer.vocab_size,
         args.bert_hidden_size,
         args.rnn_hidden_size,
         args.rnn_dropout,
