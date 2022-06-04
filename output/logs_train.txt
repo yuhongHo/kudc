@@ -1,0 +1,4 @@
+06/04/2022 09:50:30 -  Namespace(batch_size=32, bert_hidden_size=768, clip=0.5, dev_data_dir='./data/smp/0_dev.txt', epoch=20, label_dir='./data/smp/labels.txt', lr=1e-05, model_dir='./output', num_label=31, ptm_model='bert-base-chinese', ptm_seq_size=128, rnn_dropout=None, rnn_hidden_size=150, seed=1337, test_data_dir='./data/smp/test.txt', train_data_dir='./data/smp/0_train.txt', warmup=0.1)
+06/04/2022 09:50:30 -  ***** using cpu *****
+06/04/2022 09:50:30 -  ***** num GPU: 0 *****
+06/04/2022 09:50:42 -  PreTrainedTokenizerFast(name_or_path='bert-base-chinese', vocab_size=21128, model_max_len=512, is_fast=True, padding_side='right', special_tokens={'unk_token': '[UNK]', 'sep_token': '[SEP]', 'pad_token': '[PAD]', 'cls_token': '[CLS]', 'mask_token': '[MASK]'})
